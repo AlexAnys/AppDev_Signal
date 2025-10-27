@@ -20,11 +20,7 @@ import argparse
 from typing import Dict
 
 from aggregator import Aggregator
-from summarizer import (
-    summarize_general,
-    summarize_email,
-    summarize_report,
-)
+from summarization_service import Summarizer
 
 
 def run() -> None:
@@ -39,23 +35,44 @@ def run() -> None:
         "--max-sentences",
         type=int,
         default=3,
-        help="Maximum number of sentences for generic summaries",
+        help=(
+            "Maximum number of sentences for heuristic summaries. "
+            "Ignored when using an AI backend."
+        ),
+    )
+    parser.add_argument(
+        "--backend",
+        type=str,
+        default=None,
+        help=(
+            "Name of the AI backend to use (openai, deepseek, qwen, gemini). "
+            "Defaults to heuristic methods if omitted."
+        ),
     )
     args = parser.parse_args()
     # Initialise aggregator with optional custom config
     aggregator = Aggregator(config_path=args.config or "config.json")
     contents: Dict[str, str] = aggregator.collect()
+    summarizer = Summarizer()
     for source_name, text in contents.items():
         if not text.strip():
             print(f"[warning] Source '{source_name}' has no content to summarise.\n")
             continue
         print(f"=== {source_name.upper()} SUMMARY ===")
-        if source_name == "email":
-            summary = summarize_email(text, max_sentences=max(args.max_sentences - 1, 1))
-        elif source_name == "report":
-            summary = summarize_report(text, max_sentences_per_section=max(args.max_sentences - 1, 1))
+        # Determine content type; unknown keys use general heuristics
+        ctype = source_name.lower()
+        # Use AI backend if provided; heuristics ignore max_sentences differently for each type
+        backend = args.backend.lower() if args.backend else None
+        if backend is None:
+            # For heuristics, adjust sentence count for email/report
+            if ctype == "email":
+                summary = summarizer.summarise(text, ctype, backend=None)
+            elif ctype == "report":
+                summary = summarizer.summarise(text, ctype, backend=None)
+            else:
+                summary = summarizer.summarise(text, ctype, backend=None)
         else:
-            summary = summarize_general(text, max_sentences=args.max_sentences)
+            summary = summarizer.summarise(text, ctype, backend=backend)
         print(summary)
         print()
 

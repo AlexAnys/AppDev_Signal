@@ -1,5 +1,9 @@
 {
     "news": true,
     "email": true,
-    "report": true
+    "report": true,
+    "rss_feeds": [],
+    "factiva": false,
+    "euromonitor": false,
+    "financial": false
 }

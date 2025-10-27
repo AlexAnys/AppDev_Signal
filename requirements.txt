@@ -1,0 +1,10 @@
+# Python dependencies for the Signal summarisation prototype
+
+# Core web framework for the UI
+flask>=2.0
+
+# RSS parsing library for aggregator.py
+feedparser>=6.0
+
+# OpenAI client library (optional; only required if using OpenAI backend)
+openai>=1.0

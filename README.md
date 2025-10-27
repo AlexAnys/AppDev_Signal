@@ -1,13 +1,12 @@
 # Signal Prototype
 
-This repository contains a very early prototype of an **AI‑driven
-information hub**.  Its purpose is to explore how disparate
-sources of information could be aggregated, filtered and
-condensed into concise updates.  While the long‑term vision
-includes deep integrations with third‑party platforms (Factiva,
-email providers, social media, etc.) and adaptive summarisation
-strategies, this prototype focuses on demonstrating a minimal,
-fully offline workflow.
+This repository contains a prototype of an **AI‑driven information hub**.
+The goal is to explore how disparate sources of information can be
+aggregated, filtered and distilled into concise updates.  The original
+version demonstrated a self‑contained workflow using sample files and
+simple heuristics.  The current iteration extends that foundation with
+optional AI back‑ends, rudimentary RSS ingestion and a web interface for
+interactive use.
 
 ## What’s Included
 
@@ -15,8 +14,11 @@ fully offline workflow.
 |---------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | `aggregator.py` | Provides the `Aggregator` class, which currently reads sample content from the `samples/` directory.  In a production system this module would wrap external data sources and apply initial filtering. |
 | `summarizer.py` | Implements three simple summarisation functions (`summarize_general`, `summarize_email` and `summarize_report`).  These functions perform deterministic, sentence‑based summarisation without relying on any third‑party APIs or large language models. |
+| `summarization_service.py` | Defines a `Summarizer` class that wraps the basic heuristics and adds optional AI back‑ends (`openai`, `deepseek`, `qwen`, `gemini`).  When no backend is specified, the heuristics from `summarizer.py` are used as a fallback. |
 | `main.py`      | A command‑line entry point that ties everything together.  It loads the enabled sources from `config.json`, runs the appropriate summariser for each source and prints the results. |
-| `config.json`  | A minimal configuration file specifying which sample sources are enabled.  Users can toggle sources on or off by setting the corresponding boolean value. |
+| `web_app.py`   | A simple Flask application that exposes a web interface for summarising text.  Users can choose a content type, select an AI back‑end and optionally provide custom text to summarise. |
+| `templates/`   | Contains Jinja2 templates used by the web app.  The `index.html` file defines a minimal UI for selecting summarisation options and viewing results. |
+| `config.json`  | Configuration file specifying which sample sources are enabled, an optional list of RSS feeds to ingest (`rss_feeds`), and placeholders for external services (`factiva`, `euromonitor`, `financial`). |
 | `samples/`     | A directory of sample text files standing in for news articles, emails and reports.  These files allow the prototype to operate without network connectivity. |
 
 ## Running the Prototype
@@ -54,22 +56,63 @@ Section 3: Conclusion The investigation revealed that delays in responding to in
 
 ## Next Steps
 
-This codebase is intentionally simple to ensure it runs reliably in
-isolated environments.  Several areas are open for further
+The current iteration still aims to run in constrained environments but
+adds a few conveniences.  There remain many open avenues for
 development:
 
-- **Data source integrations:** Replace the sample file reader with
-  connectors to real systems such as RSS feeds, email APIs or
-  social platforms.  Authentication and rate limiting will need
-  careful handling.
-- **Adaptive summarisation:** Incorporate more advanced
-  techniques—either via open‑source models or third‑party APIs—to
-  tailor summaries to the user’s needs and the content’s genre.
-- **Configuration UI:** Provide a user interface for selecting
-  sources, defining preferences and scheduling summary deliveries.
-- **Persistence and storage:** Store fetched content and
-  generated summaries in a database to allow historical search and
-  incremental updates.
+### AI Summarisation
 
-For now, the prototype offers a concrete starting point upon
-which more sophisticated features can be layered.
+The `summarization_service.Summarizer` allows you to select between
+heuristic summaries and AI providers.  To enable the OpenAI back‑end,
+set the `OPENAI_API_KEY` environment variable before running the
+application.  Placeholders are provided for DeepSeek, Qwen and Gemini
+should you obtain API credentials for those services.  Without a valid
+key, the service silently falls back to the offline heuristics.
+
+### Web Interface
+
+`web_app.py` exposes a basic Flask server that renders an HTML form for
+summarisation.  To use it, install the dependencies and run the
+development server:
+
+```bash
+pip install flask feedparser openai
+export OPENAI_API_KEY=sk-...   # if using OpenAI
+export FLASK_APP=web_app.py
+flask run
+```
+
+By default the server loads sample content from `samples/`, but you can
+paste arbitrary text into the form.  Choosing a different back‑end will
+dispatch the request to the respective summariser.
+
+### Data Sources
+
+`aggregator.py` has been extended with rudimentary RSS support.  If
+`rss_feeds` is populated in `config.json`, the aggregator will fetch up
+to five entries from each feed and append them to the local news
+content.  This requires the optional `feedparser` dependency.  Keys
+such as `factiva`, `euromonitor` and `financial` are placeholders for
+future connectors; they currently produce empty strings.
+
+### Deployment & Custom Domain
+
+To expose the web interface under your own domain (e.g., `signal.app`),
+consider hosting the Flask app on a platform such as Heroku, Render or
+Railway, or containerising it for deployment on a virtual machine.  If
+you choose a static hosting solution like GitHub Pages, you can serve
+the frontend only—API requests would need to be proxied to a backend
+running elsewhere.  Mapping the domain involves creating a DNS `A` or
+`CNAME` record via your registrar (e.g., Porkbun) and pointing it at
+your hosting provider.  Consult the provider’s documentation for
+instructions.  **Note:** domain changes are live operations; ensure you
+have the correct IP addresses before updating DNS.
+
+### Persistence and Storage
+
+Persisting fetched content and generated summaries (e.g., in a SQLite
+database) would enable historical search and incremental updates.  This
+feature has not been implemented yet but is a natural next step.
+
+The repository remains a starting point for more sophisticated
+functionality.  Feel free to fork and extend it to suit your needs.
