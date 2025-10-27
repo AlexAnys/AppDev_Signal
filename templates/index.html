@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Signal Summariser</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; }
+        h1 { color: #333; }
+        form { margin-bottom: 1.5rem; }
+        label { display: block; margin-top: 0.5rem; font-weight: bold; }
+        select, textarea, input[type="submit"] { width: 100%; padding: 0.5rem; margin-top: 0.25rem; }
+        textarea { resize: vertical; height: 120px; }
+        .summary { margin-top: 2rem; padding: 1rem; background-color: #f7f7f7; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Signal Summariser</h1>
+    <form method="post">
+        <label for="content_type">Content Type:</label>
+        <select id="content_type" name="content_type">
+            <option value="news" {% if content_type == 'news' %}selected{% endif %}>News</option>
+            <option value="email" {% if content_type == 'email' %}selected{% endif %}>Email</option>
+            <option value="report" {% if content_type == 'report' %}selected{% endif %}>Report</option>
+        </select>
+
+        <label for="backend">Summarisation Backend:</label>
+        <select id="backend" name="backend">
+            <option value="heuristic" {% if backend == 'heuristic' %}selected{% endif %}>Heuristic (offline)</option>
+            <option value="openai" {% if backend == 'openai' %}selected{% endif %}>OpenAI</option>
+            <option value="deepseek" {% if backend == 'deepseek' %}selected{% endif %}>DeepSeek (stub)</option>
+            <option value="qwen" {% if backend == 'qwen' %}selected{% endif %}>Qwen (stub)</option>
+            <option value="gemini" {% if backend == 'gemini' %}selected{% endif %}>Gemini (stub)</option>
+        </select>
+
+        <label for="manual_input">Manual Input (optional):</label>
+        <textarea id="manual_input" name="manual_input" placeholder="Paste or type text here...">{{ manual_input }}</textarea>
+
+        <input type="submit" value="Summarise">
+    </form>
+    {% if summary %}
+    <div class="summary">
+        <h2>Summary</h2>
+        <pre>{{ summary }}</pre>
+    </div>
+    {% endif %}
+</body>
+</html>
