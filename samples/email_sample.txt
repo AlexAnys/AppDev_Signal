@@ -1,0 +1,12 @@
+Hi team,
+
+Thanks for joining yesterday's planning session.  We agreed to
+finalise the project timeline by Friday and to circulate draft
+specifications by next Wednesday.  Jane will coordinate with the
+design team; please provide her with any outstanding assets.
+
+Action: compile the first draft of the timeline (due Thursday).
+Todo: review the scope document and add any missing sections.
+
+Regards,
+Alex

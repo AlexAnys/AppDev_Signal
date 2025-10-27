@@ -1,0 +1,22 @@
+Problem Statement
+
+Our sales pipeline has grown increasingly complex, leading to
+longer cycle times and lower conversion rates.  The objective of
+this report is to identify bottlenecks in the process and propose
+concrete steps to streamline the pipeline.
+
+Methodology
+
+We collected quantitative data from our CRM over the past
+18 months and conducted interviews with key sales personnel.  The
+analysis focused on lead response times, stage durations and
+common points of failure.
+
+Conclusion
+
+The investigation revealed that delays in responding to inbound
+leads account for nearly 40 percent of lost opportunities.
+Automating the initial outreach and enforcing stricter SLAs could
+significantly improve conversion rates.  Additionally, we
+recommend consolidating duplicate stages in the pipeline to
+simplify the user experience.
