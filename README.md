@@ -12,13 +12,13 @@ interactive use.
 
 | Module        | Description                                                                                                                                       |
 |---------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| `aggregator.py` | Provides the `Aggregator` class, which currently reads sample content from the `samples/` directory.  In a production system this module would wrap external data sources and apply initial filtering. |
+| `aggregator.py` | Provides the `Aggregator` class, which currently reads sample content from the `samples/` directory and, if configured, fetches additional items from RSS feeds.  The module defines placeholders and stubs for future integrations with **Factiva**, **Euromonitor**, **Financial** data and **WRDS** (Wharton Research Data Services).  Real API calls are only invoked if corresponding configuration flags and API keys are provided. |
 | `summarizer.py` | Implements three simple summarisation functions (`summarize_general`, `summarize_email` and `summarize_report`).  These functions perform deterministic, sentence‑based summarisation without relying on any third‑party APIs or large language models. |
-| `summarization_service.py` | Defines a `Summarizer` class that wraps the basic heuristics and adds optional AI back‑ends (`openai`, `deepseek`, `qwen`, `gemini`).  When no backend is specified, the heuristics from `summarizer.py` are used as a fallback. |
+| `summarization_service.py` | Defines a `Summarizer` class that wraps the basic heuristics and adds optional AI back‑ends (`openai`, `deepseek`, `qwen`, `gemini`).  The Gemini integration uses the `google-generativeai` package and reads a `GEMINI_API_KEY` from the environment.  When no backend is specified or no key is available, the heuristics from `summarizer.py` are used as a fallback. |
 | `main.py`      | A command‑line entry point that ties everything together.  It loads the enabled sources from `config.json`, runs the appropriate summariser for each source and prints the results. |
 | `web_app.py`   | A simple Flask application that exposes a web interface for summarising text.  Users can choose a content type, select an AI back‑end and optionally provide custom text to summarise. |
 | `templates/`   | Contains Jinja2 templates used by the web app.  The `index.html` file defines a minimal UI for selecting summarisation options and viewing results. |
-| `config.json`  | Configuration file specifying which sample sources are enabled, an optional list of RSS feeds to ingest (`rss_feeds`), and placeholders for external services (`factiva`, `euromonitor`, `financial`). |
+| `config.json`  | Configuration file specifying which sample sources are enabled, an optional list of RSS feeds to ingest (`rss_feeds`), and flags for external services (`factiva`, `euromonitor`, `financial`, `wrds`).  Additional fields may store API keys directly if you prefer not to use environment variables. |
 | `samples/`     | A directory of sample text files standing in for news articles, emails and reports.  These files allow the prototype to operate without network connectivity. |
 
 ## Running the Prototype
@@ -65,9 +65,12 @@ development:
 The `summarization_service.Summarizer` allows you to select between
 heuristic summaries and AI providers.  To enable the OpenAI back‑end,
 set the `OPENAI_API_KEY` environment variable before running the
-application.  Placeholders are provided for DeepSeek, Qwen and Gemini
-should you obtain API credentials for those services.  Without a valid
-key, the service silently falls back to the offline heuristics.
+application.  Likewise, enabling the Gemini back‑end requires the
+`GEMINI_API_KEY` environment variable and the optional
+`google-generativeai` dependency.  Placeholders for DeepSeek and
+Qwen remain until suitable APIs are released.  Without a valid key
+for the chosen provider, the service silently falls back to the
+offline heuristics.
 
 ### Web Interface
 
@@ -91,9 +94,12 @@ dispatch the request to the respective summariser.
 `aggregator.py` has been extended with rudimentary RSS support.  If
 `rss_feeds` is populated in `config.json`, the aggregator will fetch up
 to five entries from each feed and append them to the local news
-content.  This requires the optional `feedparser` dependency.  Keys
-such as `factiva`, `euromonitor` and `financial` are placeholders for
-future connectors; they currently produce empty strings.
+content.  This requires the optional `feedparser` dependency.  Flags
+such as `factiva`, `euromonitor`, `financial` and `wrds` instruct the
+aggregator to query those services.  For WRDS integration, supply a
+`wrds` entry in `config.json` (either `true` or your API key) or set the
+`WRDS_API_KEY` environment variable.  Without a key or network access,
+the aggregator returns empty strings for these sources.
 
 ### Deployment & Custom Domain
 

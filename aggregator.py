@@ -73,7 +73,9 @@ class Aggregator:
                 data = json.load(f)
         except FileNotFoundError:
             # Default configuration enables all built‑in sources
-            data = {"news": True, "email": True, "report": True, "rss_feeds": []}
+            data = {"news": True, "email": True, "report": True, "rss_feeds": [],
+                    "factiva": False, "euromonitor": False, "financial": False,
+                    "wrds": False}
         except json.JSONDecodeError:
             raise ValueError(f"Invalid JSON in configuration file: {self.config_path}")
         # Normalise keys; booleans remain booleans, lists remain lists
@@ -137,6 +139,44 @@ class Aggregator:
             if bool(config.get(key, False)):
                 # At this stage we cannot fetch real data; return empty string
                 results[key] = ""
+
+        # Optional integration with Wharton Research Data Services (WRDS)
+        if bool(config.get("wrds", False)):
+            # Attempt to fetch data from WRDS using either a key in the
+            # configuration (``wrds_api_key``) or the ``WRDS_API_KEY`` env var.
+            import os
+            api_key: str = ""
+            # Check for API key in config (may be provided as a string).
+            if isinstance(config.get("wrds"), str):
+                api_key = config.get("wrds", "")  # type: ignore
+            # Fall back to environment variable
+            api_key = api_key or os.environ.get("WRDS_API_KEY", "")
+            # If no key is available, return an empty result for WRDS.
+            if not api_key:
+                results["wrds"] = ""
+            else:
+                try:
+                    import requests  # type: ignore
+                    # NOTE: Replace the URL below with the actual WRDS API
+                    # endpoint when available.  This is a placeholder for
+                    # demonstration purposes only; it will not work without
+                    # network access or a valid endpoint.
+                    url = "https://wrds.wharton.upenn.edu/data/api"
+                    response = requests.get(url, params={"api_key": api_key, "limit": 5}, timeout=10)
+                    if response.ok:
+                        try:
+                            # Attempt to decode JSON payload
+                            data = response.json()
+                            # Convert JSON to a string summary
+                            results["wrds"] = str(data)
+                        except Exception:
+                            # Fallback to raw text
+                            results["wrds"] = response.text
+                    else:
+                        results["wrds"] = ""
+                except Exception:
+                    # On any failure, leave the WRDS result empty
+                    results["wrds"] = ""
         return results
 
 

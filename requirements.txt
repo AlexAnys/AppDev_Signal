@@ -8,3 +8,9 @@ feedparser>=6.0
 
 # OpenAI client library (optional; only required if using OpenAI backend)
 openai>=1.0
+
+# Google Generative AI client library (optional; required for Gemini backend)
+google-generativeai>=0.2
+
+# Requests library for external API calls (e.g., WRDS)
+requests>=2.31

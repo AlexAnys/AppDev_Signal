@@ -163,10 +163,73 @@ class Summarizer:
         return None
 
     def _summarise_with_gemini(self, content: str, ctype: str) -> Optional[str]:
-        """Placeholder for Google Gemini integration.
+        """Summarise using Google's Gemini (via the ``google-generativeai`` package).
 
-        See :meth:`_summarise_with_deepseek` for guidance.  Returns ``None``.
+        This method attempts to use Google's Generative AI models to produce a
+        context‑aware summary.  It expects the ``GEMINI_API_KEY`` environment
+        variable to be set to a valid API key.  If the library is not
+        available or any error occurs during the call, the function returns
+        ``None``, signalling to the caller that the heuristic fallback should
+        be used instead.
+
+        Parameters
+        ----------
+        content : str
+            The raw text to summarise.
+        ctype : str
+            Content type hint ("news", "email", "report" or "general").
+
+        Returns
+        -------
+        Optional[str]
+            A summary string if the API call succeeds, otherwise ``None``.
         """
+        import os
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            return None
+        try:
+            # Import the Google Generative AI SDK lazily to avoid hard dependency
+            import google.generativeai as genai  # type: ignore
+
+            # Configure the API client with the provided key
+            genai.configure(api_key=api_key)
+
+            # Compose a prompt instructing the model to summarise the content.
+            prompt = (
+                f"You are an assistant that summarises {ctype} content. "
+                f"Provide a concise summary capturing the key points, actions "
+                f"and conclusions where relevant.\n\n"
+                f"Content:\n{content}\n"
+            )
+
+            # Use the text generation endpoint (Gemini API).  The exact model
+            # name may vary (e.g. "gemini-pro").  Here we use a generic
+            # interface; if the call fails, an exception will be raised.
+            response = genai.generate_text(
+                model="gemini-pro",
+                prompt=prompt,
+                max_output_tokens=512,
+                temperature=0.3,
+            )
+            # Extract the generated text from the response object.  Depending
+            # on the SDK version, the attribute may be ``result``, ``generated_text``
+            # or another field.  We defensively check common possibilities.
+            summary = None
+            if hasattr(response, "result"):
+                summary = response.result
+            elif hasattr(response, "generated_text"):
+                summary = response.generated_text
+            elif isinstance(response, str):
+                summary = response
+            # Normalise whitespace and return
+            if summary:
+                return summary.strip()
+        except Exception:
+            # On any failure (missing library, invalid key, network error),
+            # fall back to heuristic summarisation
+            return None
+
         return None
 
 

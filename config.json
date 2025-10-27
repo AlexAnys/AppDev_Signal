@@ -6,4 +6,6 @@
     "factiva": false,
     "euromonitor": false,
     "financial": false
+    ,
+    "wrds": false
 }
