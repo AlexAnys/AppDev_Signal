@@ -1,4 +1,4 @@
-# Signal Prototype
+# XLens Prototype
 
 This repository contains a prototype of an **AI‑driven information hub**.
 The goal is to explore how disparate sources of information can be
@@ -103,7 +103,7 @@ the aggregator returns empty strings for these sources.
 
 ### Deployment & Custom Domain
 
-To expose the web interface under your own domain (e.g., `signal.app`),
+To expose the web interface under your own domain (e.g., `xlens.app`),
 consider hosting the Flask app on a platform such as Heroku, Render or
 Railway, or containerising it for deployment on a virtual machine.  If
 you choose a static hosting solution like GitHub Pages, you can serve
